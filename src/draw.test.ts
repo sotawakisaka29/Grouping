@@ -3,7 +3,7 @@ import { createDraw, validateSetup } from './draw'
 import type { Member, Team } from './types'
 
 const teams = (count: number): Team[] => Array.from({ length: count }, (_, i) => ({ id: `t${i}`, name: `チーム${i}`, color: '#000000' }))
-const members = (count: number): Member[] => Array.from({ length: count }, (_, i) => ({ id: `m${i}`, name: `メンバー${i}`, fixedTeamId: null }))
+const members = (count: number): Member[] => Array.from({ length: count }, (_, i) => ({ id: `m${i}`, name: `メンバー${i}`, allowedTeamIds: null }))
 
 beforeEach(() => {
   let seed = 1
@@ -27,8 +27,8 @@ describe('createDraw', () => {
   it('固定割り当てを守る', () => {
     const ts = teams(2)
     const ms = members(8)
-    ms[0].fixedTeamId = ts[1].id
-    ms[1].fixedTeamId = ts[0].id
+    ms[0].allowedTeamIds = [ts[1].id]
+    ms[1].allowedTeamIds = [ts[0].id]
     const result = createDraw(ms, ts)
     expect(result[ms[0].id]).toBe(ts[1].id)
     expect(result[ms[1].id]).toBe(ts[0].id)
@@ -37,7 +37,25 @@ describe('createDraw', () => {
   it('実行不可能な固定設定を説明する', () => {
     const ts = teams(2)
     const ms = members(6)
-    ms.slice(0, 4).forEach((member) => { member.fixedTeamId = ts[0].id })
-    expect(validateSetup(ms, ts)).toContain('固定人数が多すぎる')
+    ms.slice(0, 4).forEach((member) => { member.allowedTeamIds = [ts[0].id] })
+    expect(validateSetup(ms, ts)).toContain('確定した人数が多すぎる')
+  })
+
+  it('複数の候補チームだけから割り当てる', () => {
+    const ts = teams(4)
+    const ms = members(16)
+    ms[0].allowedTeamIds = [ts[0].id, ts[1].id]
+    ms[1].allowedTeamIds = [ts[2].id, ts[3].id]
+    const result = createDraw(ms, ts)
+    expect(ms[0].allowedTeamIds).toContain(result[ms[0].id])
+    expect(ms[1].allowedTeamIds).toContain(result[ms[1].id])
+    expect(ts.map((team) => Object.values(result).filter((id) => id === team.id).length)).toEqual([4, 4, 4, 4])
+  })
+
+  it('候補の組み合わせ全体が実行不可能な場合を検出する', () => {
+    const ts = teams(4)
+    const ms = members(8)
+    ms.slice(0, 5).forEach((member) => { member.allowedTeamIds = [ts[0].id, ts[1].id] })
+    expect(validateSetup(ms, ts)).toContain('候補では')
   })
 })

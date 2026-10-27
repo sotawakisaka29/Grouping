@@ -1,4 +1,4 @@
-export type Member = { id: string; name: string; fixedTeamId: string | null }
+export type Member = { id: string; name: string; allowedTeamIds: string[] | null }
 export type Team = { id: string; name: string; color: string }
 export type Assignment = Record<string, string>
 export type Draw = {
@@ -7,7 +7,7 @@ export type Draw = {
   displayOrder: string[]
 }
 export type SavedState = {
-  version: 1
+  version: 2
   members: Member[]
   teams: Team[]
   draw: Draw | null

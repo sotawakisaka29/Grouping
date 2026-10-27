@@ -80,9 +80,21 @@ textarea { width: 100%; min-height: 112px; padding: 12px; resize: vertical; marg
 .color-swatch { position: relative; cursor: pointer; border-radius: 12px; border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
 .color-swatch input { opacity: 0; width: 100%; height: 100%; padding: 0; cursor: pointer; }
 .section-help { color: var(--muted); font-size: 13px; margin: -8px 0 12px; }
-.assignment-list { max-height: 290px; overflow: auto; }
-.assignment-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px; align-items: center; gap: 10px; min-height: 50px; border-bottom: 1px solid #e8e7e2; font-size: 14px; }
-.assignment-row select { height: 36px; padding: 0 8px; min-width: 0; }
+.assignment-list { max-height: 390px; overflow: auto; }
+.candidate-row { border-bottom: 1px solid #e8e7e2; font-size: 14px; }
+.candidate-row summary { min-height: 51px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) 16px; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+.candidate-row summary::-webkit-details-marker { display: none; }
+.candidate-row summary::after { content: '＋'; color: #999b95; font-weight: 700; }
+.candidate-row[open] summary::after { content: '−'; }
+.candidate-row summary > span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.candidate-row summary small { color: var(--muted); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.candidate-options { background: #f8f5ef; border-radius: 13px; padding: 11px; margin: 0 0 10px; }
+.all-teams-option { border: 0; background: none; color: var(--accent-dark); padding: 2px 3px 9px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.team-checkboxes { display: flex; flex-wrap: wrap; gap: 7px; }
+.team-checkboxes label { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border: 1px solid #ddd4c8; border-radius: 10px; background: #fff; color: #8c8985; cursor: pointer; font-size: 12px; }
+.team-checkboxes label.is-checked { border-color: #8f8a82; color: var(--ink); box-shadow: 0 2px 7px rgba(70, 58, 43, .08); }
+.team-checkboxes input { width: 15px; height: 15px; min-height: 0; margin: 0; padding: 0; accent-color: var(--accent); }
+.team-checkboxes i { width: 7px; height: 7px; border-radius: 50%; }
 .start-bar { margin-top: 24px; background: #34333a; color: #fff; border-radius: 22px; padding: 22px 26px; display: flex; justify-content: space-between; align-items: center; gap: 24px; box-shadow: 0 12px 28px rgba(52, 51, 58, .18); }
 .start-bar > div { color: #d5d2da; font-size: 14px; }.start-bar > div span { color: #fff; font-size: 20px; font-weight: 800; }
 .start-bar .primary-button { background: var(--yellow); border-color: var(--yellow); color: #34333a; box-shadow: 0 7px 0 #d7a82e; }
@@ -163,7 +175,7 @@ textarea { width: 100%; min-height: 112px; padding: 12px; resize: vertical; marg
   .reveal-toolbar .quiet-button:first-child { grid-column: 1 / -1; }
   .reveal-modal { padding: 22px; }
   .flip-card { height: 245px; }
-  .assignment-row { grid-template-columns: minmax(0, 1fr) 125px; }
+  .candidate-row summary small { max-width: 130px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

@@ -14,7 +14,7 @@ const initialTeams: Team[] = [
 ]
 
 const fallback: SavedState = {
-  version: 1,
+  version: 2,
   members: [],
   teams: initialTeams,
   draw: null,
@@ -102,7 +102,7 @@ function SettingsScreen({ state, update, notice, setNotice, onStart }: SettingsP
       setNotice(cleaned.length ? '入力された名前はすでに登録されています。' : '名前を入力してください。')
       return
     }
-    update({ members: [...state.members, ...accepted.map((memberName) => ({ id: makeId(), name: memberName, fixedTeamId: null }))] })
+    update({ members: [...state.members, ...accepted.map((memberName) => ({ id: makeId(), name: memberName, allowedTeamIds: null }))] })
     setNotice(skipped.length ? `${accepted.length}人を追加しました。重複していた${skipped.length}件は追加していません。` : '')
   }
 
@@ -115,12 +115,35 @@ function SettingsScreen({ state, update, notice, setNotice, onStart }: SettingsP
       })
       update({ teams: [...state.teams, ...additions] })
     } else if (safe < state.teams.length) {
-      const removedIds = new Set(state.teams.slice(safe).map((team) => team.id))
+      const remainingTeams = state.teams.slice(0, safe)
+      const remainingIds = new Set(remainingTeams.map((team) => team.id))
       update({
-        teams: state.teams.slice(0, safe),
-        members: state.members.map((member) => removedIds.has(member.fixedTeamId ?? '') ? { ...member, fixedTeamId: null } : member),
+        teams: remainingTeams,
+        members: state.members.map((member) => {
+          if (member.allowedTeamIds === null) return member
+          const allowedTeamIds = member.allowedTeamIds.filter((id) => remainingIds.has(id))
+          return { ...member, allowedTeamIds: allowedTeamIds.length === 0 || allowedTeamIds.length === remainingTeams.length ? null : allowedTeamIds }
+        }),
       })
     }
+  }
+
+  const toggleCandidate = (member: Member, teamId: string, checked: boolean) => {
+    const current = member.allowedTeamIds ?? state.teams.map((team) => team.id)
+    const next = checked ? [...new Set([...current, teamId])] : current.filter((id) => id !== teamId)
+    if (next.length === 0) {
+      setNotice(`${member.name}さんの候補チームを1つ以上残してください。`)
+      return
+    }
+    const allowedTeamIds = next.length === state.teams.length ? null : next
+    update({ members: state.members.map((item) => item.id === member.id ? { ...item, allowedTeamIds } : item) })
+    setNotice('')
+  }
+
+  const candidateSummary = (member: Member) => {
+    if (member.allowedTeamIds === null || member.allowedTeamIds.length === state.teams.length) return 'すべて（ランダム）'
+    const names = state.teams.filter((team) => member.allowedTeamIds?.includes(team.id)).map((team) => team.name)
+    return names.length === 1 ? `${names[0]}に確定` : names.join('・')
   }
 
   const saveMemberName = (id: string) => {
@@ -201,18 +224,27 @@ function SettingsScreen({ state, update, notice, setNotice, onStart }: SettingsP
             </section>
 
             <section className="panel">
-              <SectionTitle number="03" title="固定割り当て" detail="任意" />
-              <p className="section-help">特定のメンバーをあらかじめチームに配置できます。</p>
+              <SectionTitle number="03" title="参加候補チーム" detail="任意" />
+              <p className="section-help">入れるチームを絞り込めます。候補が少ない人から優先して抽選します。</p>
               <div className="assignment-list">
                 {state.members.length === 0 && <Empty text="メンバーを追加すると設定できます" />}
                 {state.members.map((member) => (
-                  <label className="assignment-row" key={member.id}>
-                    <span>{member.name}</span>
-                    <select value={member.fixedTeamId ?? ''} onChange={(event) => update({ members: state.members.map((item) => item.id === member.id ? { ...item, fixedTeamId: event.target.value || null } : item) })}>
-                      <option value="">ランダム</option>
-                      {state.teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
-                    </select>
-                  </label>
+                  <details className="candidate-row" key={member.id}>
+                    <summary><span>{member.name}</span><small>{candidateSummary(member)}</small></summary>
+                    <div className="candidate-options">
+                      <button type="button" className="all-teams-option" onClick={() => update({ members: state.members.map((item) => item.id === member.id ? { ...item, allowedTeamIds: null } : item) })}>すべて選択</button>
+                      <div className="team-checkboxes">
+                        {state.teams.map((team) => {
+                          const checked = member.allowedTeamIds === null || member.allowedTeamIds.includes(team.id)
+                          return <label key={team.id} className={checked ? 'is-checked' : ''}>
+                            <input type="checkbox" checked={checked} onChange={(event) => toggleCandidate(member, team.id, event.target.checked)} />
+                            <i style={{ backgroundColor: team.color }} />
+                            <span>{team.name}</span>
+                          </label>
+                        })}
+                      </div>
+                    </div>
+                  </details>
                 ))}
               </div>
             </section>
