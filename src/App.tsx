@@ -4,7 +4,7 @@ import { createDraw, shuffled, validateSetup } from './draw'
 import { loadState, saveState } from './storage'
 import type { Draw, Member, SavedState, Team } from './types'
 
-const colors = ['#C5574F', '#477AA1', '#568064', '#A1793F', '#765F92', '#407F82', '#B15F7A', '#68717B']
+const colors = ['#FF6B61', '#4D96FF', '#52C788', '#FFB84D', '#9B7BFF', '#35B9C7', '#F16FA3', '#697386']
 const teamLetter = (index: number) => String.fromCharCode(65 + index)
 const makeId = () => crypto.randomUUID()
 
